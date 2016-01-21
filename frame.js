@@ -1,6 +1,8 @@
+var express = require('express');
 var jsonld = require('jsonld');
 var fs = require('fs');
 
+const PORT = 8080;
 var context = JSON.parse(fs.readFileSync('context.json', 'utf8'));
 var json = JSON.parse(fs.readFileSync('action.json', 'utf8'));
 json["@context"] = context["@context"];
@@ -11,13 +13,44 @@ var frame = {
   "@embed": "@link"
 };
 
-jsonld.toRDF(json, {format: 'application/nquads'}, function(err, nquads) {
-  jsonld.fromRDF(nquads, {format: 'application/nquads'}, function(err, doc) {
-    jsonld.frame(doc, frame, function(err, compacted) {
-      var result = full(compacted['@graph'][0]);
-      console.log(JSON.stringify(result, null, 2));
+var app = express();
+app.use(function(req, res, next) {
+  req.rawBody = '';
+  req.setEncoding('utf8');
+
+  req.on('data', function(chunk) { 
+    req.rawBody += chunk;
+  });
+
+  req.on('end', function() {
+    next();
+  });
+});
+//app.use(express.bodyParser());
+
+app.get('/', function (req, res) {
+  jsonld.toRDF(json, {format: 'application/nquads'}, function(err, nquads) {
+    console.log(nquads);
+    jsonld.fromRDF(nquads, {format: 'application/nquads'}, function(err, doc) {
+      jsonld.frame(doc, frame, function(err, compacted) {
+        var result = full(compacted['@graph'][0]);
+        res.send(JSON.stringify(result, null, 2));
+      });
     });
   });
+});
+
+app.post('/', function(req, res) {
+  jsonld.fromRDF(req.rawBody, {format: 'application/nquads'}, function(err, doc) {
+    jsonld.frame(doc, frame, function(err, compacted) {
+      var result = full(compacted['@graph'][0]);
+      res.send(JSON.stringify(result, null, 2));
+    });
+  });
+});
+
+app.listen(PORT, function () {
+  console.log('Example app listening on port %s', PORT);
 });
 
 function full(doc) {
@@ -38,7 +71,9 @@ function embed(doc) {
   } else if (doc instanceof Object) {
     var result = {};
     for (var p in doc) {
-      result[p] = link(doc[p]);
+      if (! (p == "@id" && /^_:/.test(doc["@id"]))) {
+        result[p] = link(doc[p]);
+      }
     }
     return result;
   } else {
@@ -47,7 +82,7 @@ function embed(doc) {
 }
 
 function link(doc) {
-  var linkProperties = ["@id", "@type", "name", "@value", "@language"];
+  var linkProperties = ["@id", "@type", "@value", "@language", "name"];
   if (doc instanceof Array) {
     var result = [];
     for (var i in doc) {
