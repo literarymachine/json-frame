@@ -3,7 +3,7 @@ var jsonld = require('jsonld');
 var fs = require('fs');
 
 const PORT = 8080;
-var context = JSON.parse(fs.readFileSync('context.json', 'utf8'));
+var context = JSON.parse(fs.readFileSync(__dirname + '/context.json', 'utf8'));
 
 var app = express();
 
@@ -11,7 +11,7 @@ app.use(function(req, res, next) {
   req.rawBody = '';
   req.setEncoding('utf8');
 
-  req.on('data', function(chunk) { 
+  req.on('data', function(chunk) {
     req.rawBody += chunk;
   });
 
