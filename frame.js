@@ -4,8 +4,6 @@ var fs = require('fs');
 
 const PORT = 8080;
 var context = JSON.parse(fs.readFileSync('context.json', 'utf8'));
-var json = JSON.parse(fs.readFileSync('action.json', 'utf8'));
-json["@context"] = context["@context"];
 
 var app = express();
 
@@ -22,24 +20,13 @@ app.use(function(req, res, next) {
   });
 });
 
-app.get('/', function (req, res) {
-  jsonld.toRDF(json, {format: 'application/nquads'}, function(err, nquads) {
-    console.log(nquads);
-    jsonld.fromRDF(nquads, {format: 'application/nquads'}, function(err, doc) {
-      jsonld.frame(doc, frame, function(err, compacted) {
-        var result = full(compacted['@graph'][0]);
-        res.send(JSON.stringify(result, null, 2));
-      });
-    });
-  });
-});
+app.set('json spaces', 2);
 
 app.post('/:type', function(req, res) {
-  console.log(req.rawBody);
   jsonld.fromRDF(req.rawBody, {format: 'application/nquads', useNativeTypes: true}, function(err, doc) {
     if (err) {
       console.error(err.stack);
-      return res.status(500).send(err.stack);
+      return res.status(500).json(err);
     }
     var frame = {
       "@context": context["@context"],
@@ -49,10 +36,9 @@ app.post('/:type', function(req, res) {
     jsonld.frame(doc, frame, function(err, compacted) {
       if (err) {
         console.error(err.stack);
-        return res.status(500).send(err.stack);
+        return res.status(500).json(err);
       }
-      var result = JSON.stringify(full(compacted['@graph'][0]), null, 2);
-      return res.send(result);
+      return res.json(full(compacted['@graph'][0]));
     });
   });
 });
