@@ -7,13 +7,8 @@ var context = JSON.parse(fs.readFileSync('context.json', 'utf8'));
 var json = JSON.parse(fs.readFileSync('action.json', 'utf8'));
 json["@context"] = context["@context"];
 
-var frame = {
-  "@context": context["@context"],
-  "@type": "Action",
-  "@embed": "@link"
-};
-
 var app = express();
+
 app.use(function(req, res, next) {
   req.rawBody = '';
   req.setEncoding('utf8');
@@ -26,7 +21,6 @@ app.use(function(req, res, next) {
     next();
   });
 });
-//app.use(express.bodyParser());
 
 app.get('/', function (req, res) {
   jsonld.toRDF(json, {format: 'application/nquads'}, function(err, nquads) {
@@ -40,17 +34,31 @@ app.get('/', function (req, res) {
   });
 });
 
-app.post('/', function(req, res) {
-  jsonld.fromRDF(req.rawBody, {format: 'application/nquads'}, function(err, doc) {
+app.post('/:type', function(req, res) {
+  console.log(req.rawBody);
+  jsonld.fromRDF(req.rawBody, {format: 'application/nquads', useNativeTypes: true}, function(err, doc) {
+    if (err) {
+      console.error(err.stack);
+      return res.status(500).send(err.stack);
+    }
+    var frame = {
+      "@context": context["@context"],
+      "@type": req.params.type,
+      "@embed": "@link"
+    };
     jsonld.frame(doc, frame, function(err, compacted) {
-      var result = full(compacted['@graph'][0]);
-      res.send(JSON.stringify(result, null, 2));
+      if (err) {
+        console.error(err.stack);
+        return res.status(500).send(err.stack);
+      }
+      var result = JSON.stringify(full(compacted['@graph'][0]), null, 2);
+      return res.send(result);
     });
   });
 });
 
 app.listen(PORT, function () {
-  console.log('Example app listening on port %s', PORT);
+  console.log('Listening on port %s', PORT);
 });
 
 function full(doc) {

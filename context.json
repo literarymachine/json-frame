@@ -129,12 +129,6 @@
     },
     "url": {
       "@type": "@id"
-    },
-    "lat": {
-      "@type": "xsd:double"
-    },
-    "lon": {
-      "@type": "xsd:double"
     }
   }
 }
