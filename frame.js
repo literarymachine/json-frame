@@ -22,7 +22,7 @@ app.use(function(req, res, next) {
 
 app.set('json spaces', 2);
 
-app.post('/:type', function(req, res) {
+app.post('/:type/:id', function(req, res) {
   jsonld.fromRDF(req.rawBody, {format: 'application/nquads', useNativeTypes: true}, function(err, doc) {
     if (err) {
       console.error(err.stack);
@@ -38,7 +38,12 @@ app.post('/:type', function(req, res) {
         console.error(err.stack);
         return res.status(500).json(err);
       }
-      return res.json(full(compacted['@graph'][0]));
+      for (var i = 0; i < compacted['@graph'].length; i++) {
+        if (compacted['@graph'][i]['@id'] == req.params.id) {
+          return res.json(full(compacted['@graph'][i]));
+        }
+      }
+      return res.json({});
     });
   });
 });
