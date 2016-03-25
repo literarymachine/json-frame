@@ -23,28 +23,24 @@ app.use(function(req, res, next) {
 app.set('json spaces', 2);
 
 app.post('/:type/:id', function(req, res) {
-  jsonld.fromRDF(req.rawBody, {format: 'application/nquads', useNativeTypes: true}, function(err, doc) {
+  var frame = {
+    "@context": context["@context"],
+    "@type": req.params.type,
+    "@embed": "@link"
+  };
+  var doc = JSON.parse(req.rawBody);
+  jsonld.frame(doc, frame, function(err, compacted) {
     if (err) {
       console.error(err.stack);
       return res.status(500).json(err);
     }
-    var frame = {
-      "@context": context["@context"],
-      "@type": req.params.type,
-      "@embed": "@link"
-    };
-    jsonld.frame(doc, frame, function(err, compacted) {
-      if (err) {
-        console.error(err.stack);
-        return res.status(500).json(err);
+    for (var i = 0; i < compacted['@graph'].length; i++) {
+      if (compacted['@graph'][i]['@id'] == req.params.id) {
+        console.log("Framed " + req.params.id);
+        return res.json(full(compacted['@graph'][i]));
       }
-      for (var i = 0; i < compacted['@graph'].length; i++) {
-        if (compacted['@graph'][i]['@id'] == req.params.id) {
-          return res.json(full(compacted['@graph'][i]));
-        }
-      }
-      return res.json({});
-    });
+    }
+    return res.json({});
   });
 });
 
