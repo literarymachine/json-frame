@@ -49,7 +49,9 @@ app.listen(PORT, function () {
 });
 
 function full(doc) {
-  var result = {};
+  var result = {
+    "@context": "http://schema.org/"
+  };
   for (var p in doc) {
     result[p] = embed(doc[p]);
   }
