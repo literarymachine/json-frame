@@ -44,9 +44,79 @@ app.post('/:type/:id', function(req, res) {
   });
 });
 
+app.post('/flatten/', function(req, res) {
+
+  var doc = JSON.parse(req.rawBody);
+  jsonld.flatten(doc, function(err, flattened) {
+    if (err) {
+      console.error(err.stack);
+      return res.status(500).json(err);
+    }
+    var resources = [];
+    for (var i = 0; i < flattened.length; i++) {
+      jsonld.compact(flattened[i], context, function(err, compacted) {
+        compacted['@context'] = "http://schema.org/"
+        resources.push(compacted);
+      });
+    }
+    var interval = setInterval(function() {
+      if (resources.length == flattened.length) {
+        clearInterval(interval);
+        return res.json(cbds(resources));
+      }
+    }, 10);
+  });
+
+});
+
 app.listen(PORT, function () {
   console.log('Listening on port %s', PORT);
 });
+
+function cbds(docs) {
+
+  var resources = [];
+  var bnodes = {};
+
+  for (var i = 0; i < docs.length; i++) {
+    if (/^_:/.test(docs[i]["@id"])) {
+      var id = docs[i]["@id"];
+      delete(docs[i]["@id"]);
+      delete(docs[i]["@context"]);
+      bnodes[id] = docs[i];
+    } else {
+      resources.push(docs[i]);
+    }
+  }
+
+  for (var i = 0; i < resources.length; i++) {
+    resources[i] = cbd(resources[i], bnodes);
+  }
+  return resources;
+
+}
+
+function cbd(doc, bnodes) {
+
+  for (var p in doc) {
+    if (doc[p] instanceof Array) {
+      var result = [];
+      for (var i = 0; i < doc[p].length; i++) {
+        if (doc[p][i] instanceof Object && /^_:/.test(doc[p][i]["@id"])) {
+          result.push(cbd(bnodes[doc[p][i]["@id"]], bnodes));
+        } else if (doc[p][i] instanceof Object) {
+          result.push(cbd(doc[p][i], bnodes));
+        }
+      }
+      doc[p] = result;
+    } else if (doc[p] instanceof Object && /^_:/.test(doc[p]["@id"])) {
+      doc[p] = cbd(bnodes[doc[p]["@id"]], bnodes);
+    }
+  }
+
+  return doc;
+
+}
 
 function full(doc) {
   var result = {
@@ -101,4 +171,3 @@ function link(doc) {
     return doc;
   }
 }
-
