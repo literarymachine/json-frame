@@ -36,7 +36,7 @@ app.post('/:type/:id', function(req, res) {
     }
     for (var i = 0; i < compacted['@graph'].length; i++) {
       if (compacted['@graph'][i]['@id'] == req.params.id) {
-        console.log("Framed " + req.params.id);
+        console.log("Framed", req.params.id);
         return res.json(full(compacted['@graph'][i]));
       }
     }
@@ -106,6 +106,8 @@ function cbd(doc, bnodes) {
           result.push(cbd(bnodes[doc[p][i]["@id"]], bnodes));
         } else if (doc[p][i] instanceof Object) {
           result.push(cbd(doc[p][i], bnodes));
+        } else {
+          result.push(doc[p][i]);
         }
       }
       doc[p] = result;
