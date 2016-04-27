@@ -124,6 +124,36 @@
     "funderOf": {
       "@container": "@set"
     },
+    "notation": {
+      "@container": "@set"
+    },
+    "scopeNote": {
+      "@container": "@set"
+    },
+    "availableLanguage": {
+      "@container": "@set"
+    },
+    "recordedIn": {
+      "@container": "@set"
+    },
+    "inLanguage": {
+      "@container": "@set"
+    },
+    "licenseConcept": {
+      "@container": "@set"
+    },
+    "endDate": {
+      "@type" : "Date"
+    },
+    "startDate": {
+      "@type" : "Date"
+    },
+    "startTime": {
+      "@type" : "DateTime"
+    },
+    "endTime": {
+      "@type" : "DateTime"
+    },
     "image": {
       "@type": "@id"
     },
