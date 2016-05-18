@@ -139,6 +139,9 @@
     "inLanguage": {
       "@container": "@set"
     },
+    "articleBody": {
+      "@container": "@set"
+    },
     "licenseConcept": {
       "@container": "@set"
     },
@@ -153,6 +156,9 @@
     },
     "endTime": {
       "@type" : "DateTime"
+    },
+    "dateCreated": {
+      "@type" : "Date"
     },
     "image": {
       "@type": "@id"
