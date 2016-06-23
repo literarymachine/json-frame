@@ -2,7 +2,7 @@ var express = require('express');
 var jsonld = require('jsonld');
 var fs = require('fs');
 
-const PORT = 8080;
+const PORT = process.argv[2] || 8080;
 var context = JSON.parse(fs.readFileSync(__dirname + '/context.json', 'utf8'));
 
 var app = express();
