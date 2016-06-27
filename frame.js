@@ -28,20 +28,25 @@ app.post('/:type/:id', function(req, res) {
     "@type": req.params.type,
     "@embed": "@link"
   };
-  var doc = JSON.parse(req.rawBody);
-  jsonld.frame(doc, frame, function(err, compacted) {
-    if (err) {
-      console.error(err.stack);
-      return res.status(500).json(err);
-    }
-    for (var i = 0; i < compacted['@graph'].length; i++) {
-      if (compacted['@graph'][i]['@id'] == req.params.id) {
-        console.log("Framed", req.params.id);
-        return res.json(full(compacted['@graph'][i]));
-      }
-    }
-    return res.json({});
+
+  jsonld.fromRDF(req.rawBody, {format: 'application/nquads', useNativeTypes: true}, function(err, doc) {
+    jsonld.frame(doc, frame, function(err, compacted) {
+        if (err) {
+          console.error(err.stack);
+          return res.status(500).json(err);
+        }
+        for (var i = 0; i < compacted['@graph'].length; i++) {
+          if (compacted['@graph'][i]['@id'] == req.params.id) {
+            //console.log(req.rawBody);
+            console.log("Framed", req.params.id);
+            console.log(full(compacted['@graph'][i]));
+            return res.json(full(compacted['@graph'][i]));
+          }
+        }
+        return res.json({});
+      });
   });
+
 });
 
 app.post('/flatten/', function(req, res) {
