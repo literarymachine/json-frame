@@ -168,6 +168,12 @@
     },
     "serviceUrl": {
       "@type": "@id"
+    },
+    "text": {
+      "@container": "@set"
+    },
+    "comment": {
+      "@container": "@set"
     }
   }
 }
