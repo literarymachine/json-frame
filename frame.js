@@ -3,7 +3,8 @@ var jsonld = require('jsonld');
 var fs = require('fs');
 
 const PORT = process.argv[2] || 8080;
-var context = JSON.parse(fs.readFileSync(__dirname + '/context.json', 'utf8'));
+const URL = process.argv[4] || 'http://schema.org/';
+const CONTEXT = JSON.parse(fs.readFileSync(process.argv[3] || __dirname + '/context.json', 'utf8'));
 
 var app = express();
 
@@ -24,7 +25,7 @@ app.set('json spaces', 2);
 
 app.post('/:type/:id', function(req, res) {
   var frame = {
-    "@context": context["@context"],
+    "@context": CONTEXT["@context"],
     "@type": req.params.type,
     "@embed": "@link"
   };
@@ -54,8 +55,8 @@ app.post('/flatten/', function(req, res) {
     }
     var resources = [];
     for (var i = 0; i < flattened.length; i++) {
-      jsonld.compact(flattened[i], context, function(err, compacted) {
-        compacted['@context'] = "http://schema.org/"
+      jsonld.compact(flattened[i], CONTEXT, function(err, compacted) {
+        compacted['@context'] = URL
         resources.push(compacted);
       });
     }
@@ -122,7 +123,7 @@ function cbd(doc, bnodes) {
 
 function full(doc) {
   var result = {
-    "@context": "http://schema.org/"
+    "@context": URL
   };
   for (var p in doc) {
     result[p] = embed(doc[p]);
