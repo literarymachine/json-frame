@@ -48,6 +48,7 @@ app.post('/:type/:id', function(req, res) {
 app.post('/flatten/', function(req, res) {
 
   var doc = JSON.parse(req.rawBody);
+  doc['@context'] = CONTEXT["@context"];
   jsonld.flatten(doc, function(err, flattened) {
     if (err) {
       console.error(err.stack);
