@@ -38,7 +38,9 @@ app.post('/:type/:id', function(req, res) {
     for (var i = 0; i < compacted['@graph'].length; i++) {
       if (compacted['@graph'][i]['@id'] == req.params.id) {
         console.log("Framed", req.params.id);
-        return res.json(full(compacted['@graph'][i]));
+        var result = embed(compacted['@graph'][i]);
+        result['@context'] = URL;
+        return res.json(result);
       }
     }
     return res.json({});
@@ -120,16 +122,6 @@ function cbd(doc, bnodes) {
 
   return doc;
 
-}
-
-function full(doc) {
-  var result = {
-    "@context": URL
-  };
-  for (var p in doc) {
-    result[p] = embed(doc[p]);
-  }
-  return result;
 }
 
 function embed(doc) {
